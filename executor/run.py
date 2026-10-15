@@ -776,9 +776,12 @@ def _latest_failed_ids(mpath):
     for d in sorted(rroot.iterdir(), reverse=True) if rroot.exists() else []:
         f = d / "results.json"
         if f.exists():
-            data = json.loads(f.read_text(encoding="utf-8"))
-            if data.get("gate") == "api":
-                return {r["id"] for r in data.get("runs", []) if r.get("status") == "RED"}
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                if data.get("gate") == "api":
+                    return {r["id"] for r in data.get("runs", []) if r.get("status") == "RED"}
+            except (OSError, json.JSONDecodeError, AttributeError, TypeError):
+                continue  # 上批 results.json 缺失/截断/形状不对（进程中途被杀），回退更早批次
     return set()
 
 
@@ -835,20 +838,22 @@ def main():
     print(f"开跑：gate={args.gate}，共 {len(runs)} 条 run，报告目录 {rdir}")
 
     results, conn_streak = [], 0
-    for i, r in enumerate(runs):
-        if conn_streak >= 3:
-            results.append({"id": r["id"], "kind": r["kind"], "branch_trace": r["trace"],
-                            "status": "NOT_RUN", "error": "环境崩溃熔断（连续连接失败）",
-                            "steps": [], "vars": {}, "snips": {}, "artifacts": [],
-                            "ms": 0, "finished_at": now_iso()})
-            continue
-        print(f"[{i + 1}/{len(runs)}] {r['id']} ...", flush=True)
-        rr = execute_run(r, m, args.gate, ui, rdir / "artifacts")
-        conn_streak = conn_streak + 1 if rr.pop("conn_fail", False) else 0
-        results.append(rr)
-        print(f"    → {rr['status']}  {rr['ms']}ms  {rr['error'] or ''}", flush=True)
-    if ui:
-        ui.close()
+    try:
+        for i, r in enumerate(runs):
+            if conn_streak >= 3:
+                results.append({"id": r["id"], "kind": r["kind"], "branch_trace": r["trace"],
+                                "status": "NOT_RUN", "error": "环境崩溃熔断（连续连接失败）",
+                                "steps": [], "vars": {}, "snips": {}, "artifacts": [],
+                                "ms": 0, "finished_at": now_iso()})
+                continue
+            print(f"[{i + 1}/{len(runs)}] {r['id']} ...", flush=True)
+            rr = execute_run(r, m, args.gate, ui, rdir / "artifacts")
+            conn_streak = conn_streak + 1 if rr.pop("conn_fail", False) else 0
+            results.append(rr)
+            print(f"    → {rr['status']}  {rr['ms']}ms  {rr['error'] or ''}", flush=True)
+    finally:
+        if ui:
+            ui.close()
 
     summary = {"manifest": str(mpath), "name": m.get("name"), "gate": args.gate,
                "started_at": results[0]["finished_at"] if results else now_iso(),

@@ -98,7 +98,7 @@ JSONPath 子集：`$.a.b.c`、数组下标 `$.a.0.b`、`$` 根。
     read: "{ai_question}"          # 读题来源：含题目文本的变量模板；UI 门可用 "$page" 读整页文本
     mode: fuzzy                    # exact=选项写死 | fuzzy=现场读题
     expect_keywords: [复刻, 全新]   # 可选 sanity：题目须含其一，否则 RED
-    choice_var: first_choice       # 可选；fuzzy+llm 时选中的选项原文存此（默认 <fork_id>_choice）
+    choice_var: first_choice       # 可选；选中选项原文存此（exact 关键词命中与 fuzzy/LLM 兜底皆然；默认 <fork_id>_choice）
     branches:
       - id: replicate
         pick: { contains: "复刻" }              # fuzzy：关键词优先

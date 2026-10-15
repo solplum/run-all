@@ -1,6 +1,6 @@
 ---
 name: run-all
-description: 全流程测试框架：静态审查 + 动态测试一体——门0 全量代码/逻辑审查（调 logic-review 16 维），门1 API 层，门2 界面层（Web=Playwright 脚本驱动，Android/Flutter/桌面=AI 驱动+证据落盘，CLI=cli 步骤），分叉路径全组合 + 异常探针 + 报告与失败定位。支持网站、移动 App、桌面应用、CLI 程序。只要用户说「全流程测试」「跑全流程」「E2E 全流程」「全链路测试」「完整流程测试」「把 X 全流程测一遍」（X 可以是网站/App/应用/小程序/桌面程序），或要求给某项目/功能编写全流程测试清单，就用本 skill——即使没点名 skill 名。也支持三模式：「细节审查」（门0 静态细节）「只测 UI」（门2 体验审计）「跑全流程」（完整三门），可单选可多选（见模式选择节）。
+description: 全流程测试框架：静态审查 + 动态测试一体——门0 全量代码/逻辑审查（调 logic-review 16 维），门1 API 层，门2 界面层（Web=Playwright 脚本驱动，Android/Flutter/桌面=AI 驱动+证据落盘，CLI=cli 步骤），分叉路径全组合 + 异常探针 + 报告与失败定位。支持网站、移动 App、桌面应用、CLI 程序。只要用户说「全流程测试」「跑全流程」「E2E 全流程」「端到端测试」「全链路测试」「完整流程测试」「把 X 全流程测一遍」（X 可以是网站/App/应用/小程序/桌面程序），或要求给某项目/功能编写全流程测试清单，就用本 skill——即使没点名 skill 名。也支持三模式：「细节审查」（门0 静态细节）「只测 UI」（门2 体验审计）「跑全流程」（完整三门），可单选可多选（见模式选择节）。边界：为已有测试套件编写/批跑测试用例归 test skill；不含性能/压测/负载测试。
 ---
 
 # Skill: run-all
@@ -8,10 +8,10 @@ description: 全流程测试框架：静态审查 + 动态测试一体——门0
 
 ## 触发词
 
-用户说「全流程测试」「跑全流程」「E2E 全流程」「全链路测试」「完整流程测试」并给出项目/模块时触发。
+用户说「全流程测试」「跑全流程」「E2E 全流程」「端到端测试」「全链路测试」「完整流程测试」且目标项目可从上下文确定（当前会话/工作目录即可，不要求显式路径）时触发。
 也适用于：「把 X 功能全流程测一遍」「把 X 模块全流程测一遍」「把 X App 全流程测一遍」。
 目标形态不限：网站/Web、移动 App（Android/Flutter）、桌面应用、CLI 程序（清单 `target.platform` 声明）。
-模式触发：「细节审查」「细节问题查一遍」→ detail；「只测 UI」「UI 审查」→ ui；「跑全流程」→ full；
+模式触发（指本 skill 的模式时）：「细节审查」「细节问题查一遍」→ detail；「只测 UI」「UI 审查」→ ui；「跑全流程」→ full；
 没带模式词 → 按「模式选择」节问一次（可多选）。
 
 ## 模式选择（可单选可多选；缺省时问一次）
@@ -19,7 +19,7 @@ description: 全流程测试框架：静态审查 + 动态测试一体——门0
 | 模式 | 跑什么 | 前置 | 结论口径 |
 |------|--------|------|---------|
 | detail 细节 | 门0 全量静态审查 + 重点深审面（竞态时序/记账状态机/配置矩阵/幂等），只审不修（修复走 logic-review `--fix` 授权） | 无，不起环境 | 只代表门0 |
-| ui 界面 | 门2 体验审计（experience-audit.md A/B/E 节）+ 回归基线对照 + 设备层级抽验 | 起环境；不要求门1 全绿 | 只代表门2 审计面 |
+| ui 界面 | 门2 体验审计（experience-audit.md，按其执行分级节）+ 回归基线对照 + 设备层级抽验 | 起环境；不要求门1 全绿 | 只代表门2 审计面 |
 | full 全程 | 门0 + 门1 + 门2 业务流全组合与探针（完整 run-all） | 全前置 | 三门口径 |
 
 - 触发词带模式直接用，带多个 = 多选；没带 → AskUserQuestion 问一次（可多选）
@@ -107,7 +107,7 @@ description: 全流程测试框架：静态审查 + 动态测试一体——门0
    ①一句话总结论（过/没过/带条件过）；②发现的问题逐条按「问题是什么（人话，讲用户可感知
    的现象）→ 放着不管会怎样（影响写到用户/线上层面，不写某模块某函数）→ 需要用户决策什么
    （修/不修/建议顺序，给可直接执行的选项）」；③不需要决策的（已自动处理/复跑恢复/前提不成立）
-   归并一小节交代。禁止内部编号裸奔：L3/E-R3/R3 等编号只能跟在人话名后面当检索锚点。
+   归并一小节交代。禁止内部编号裸奔：R3、L1 等编号（regression-baselines 的 R 系、台账的 L 系）只能跟在人话名后面当检索锚点。
    此规范同约束 saved workflow `run-all` 的汇总员。
    挂账台账机制：`<项目>/tests/fullflow/ledger.md` 为挂账唯一权威载体（每行：路径ID+卡点+收口判据
    +来源轮）；铁律 9 的交付挂账清单与 manifest 头部 `# pending:` 注释均从它派生，同一动作生成、不单独
@@ -188,7 +188,8 @@ AI 驱动通道规则（铁律 8）：
 
 `templates/demo_server.py` 是零依赖的 3 步 2 叉演示服务；
 `uv run python <skill目录>/templates/demo_server.py --port 8765` 起服务后跑
-`templates/demo.manifest.yaml` 可不依赖任何真实项目回归执行器全链（首次改动 run.py 后必跑）。
+`FULLFLOW_ALLOW_PRIVATE_TARGET=1 uv run --with pyyaml python <skill目录>/executor/run.py --manifest <skill目录>/templates/demo.manifest.yaml`
+可不依赖任何真实项目回归执行器全链（先加 `--plan-only` 看路径表，去掉后加 `--gate api` 跑门1；首次改动 run.py 后必跑）。
 demo 清单含 cli 步骤（`env_cli_check`），一并回归 cli 执行路径。
 
 ## 命令速查
@@ -228,10 +229,9 @@ uv run --with pyyaml python <skill>/executor/diag.py  --report-dir <reports/<时
 - MiniMax-M3 响应带 `<think>` 段：llm_match 已剥离，但换模型后读题异常先查这里
 - fuzzy 读题输入源按门切换：API 门用响应文本，UI 门读页面文本（`fork.read: "$page"`）
 - 目标有登录态时：清单的 ui 段以 login 步骤开头，框架不内置登录魔法
-- cli 步骤 argv 直传（shell=False）：复合命令拆步骤；字符串命令经 shlex 切词，
-  带反斜杠的 Windows 路径参数请改用列表写法
-- **cli 步骤没有 env 字段**：命令所需环境变量只能由编排层在**父 shell export**（子进程继承），或命令/路径写全路径。实测门1 首跑 RED 就是因为 `JAVA_HOME` 指着缺 jlink.exe 的 IntelliJ JBR —— 清单顶部的「环境前置」注释要写清这属编排层职责
-- **health 段只认 HTTP dict**（method/url/expect）：写成 `- { cli: ... }` 列表会让 run.py 直接崩 `AttributeError: 'list' object has no attribute 'get'`。CLI 型目标要么省掉 health，要么把就绪检查做成一条可执行的 cli 步骤（assert text_contains）—— 云开鸿蒙清单就踩过（旧清单因此从没被 run.py 跑过）
+- cli 步骤 argv 直传（shell=False）：复合命令拆步骤；字符串命令经 shlex 切词，带反斜杠的 Windows 路径参数请改用列表写法（字段规范见 manifest-spec.md）
+- **cli 步骤没有 env 字段**：环境变量只能由编排层在**父 shell export**（子进程继承），或命令/路径写全路径——实测门1 首跑 RED 就是 `JAVA_HOME` 指着缺 jlink.exe 的 IntelliJ JBR（规范见 manifest-spec.md）
+- **health 段只认 HTTP dict**（method/url/expect），写成列表 run.py 直接崩 AttributeError——CLI 型目标要么省掉 health，要么把就绪检查做成可执行 cli 步骤（assert text_contains）；云开鸿蒙旧清单就因此从没被 run.py 跑过（规范见 manifest-spec.md）
 - **platform=cli 时 ui 步骤不被 run.py 执行**（该平台无脚本通道）：它们只是给 AI 驱动层读的规格，逐条驱动后按 铁律 8 手写 agent_results.json，并在报告里写明「本平台门2=AI 驱动」
 - **断言锚点别选输入框占位符或列表文案**：占位符恒在屏上（「问我任何问题…」命中即假绿）、列表标题常同时出现在多处 —— 实测两次误判都源于此。锚点要选该状态下唯一且语义独立的标志（如引导页 chips），且**先 dump 确认再断言**
 - **AI 驱动门2 的取数口径**：uiautomator / ArkUI dumpLayout **会漏长文本节点**、只含屏上节点，Toast 也不在树里 → 内容级断言以截图为准，机制证据看应用自己的逐步日志（Android `logcat -s <tag>`、鸿蒙 hilog）
@@ -253,12 +253,8 @@ uv run --with pyyaml python <skill>/executor/diag.py  --report-dir <reports/<时
   完成度」条款在门2 收尾做 API 全文对照（编排层直调）与首字时间断言
 - **模拟器过 ≠ 真机过**（云开实证）：MIUI 无障碍高频闪断弄丢悬浮球只有真机能见；抽屉 ⚙✕ 与 ☰ 撞位
   模拟器截图肉眼可见却拖到用户截图报障。按「设备层级策略」抽验真机并在报告披露
-- **重连重放 + 多通道落库**（IM 项目实证）：WS 断线>60s 重连整批重推、AI 回复经多条后端通道
-  各写一次——DB 一条、显示层翻倍，门1 断 DB 计数反而「正确」。按「有状态客户端」条款补重连与并发
-  场景（web 目标由编排层用浏览器工具驱动），断言同 ID 只渲染一次
+- **重连重放 + 多通道落库**（IM 项目实证）：WS 重连整批重推 + AI 回复按通道各写一次——DB 一条、显示层翻倍，门1 断 DB 计数反而「正确」。规则与断言详见 `references/regression-baselines.md` R4
 - **静默不响应也是失败**（IM 项目实证）：配置矩阵三根因（技能清单配置为空=无脚本路径、触发者
   自己扣分不足、上传包毒过滤器误杀）让 AI 不说话，无错误码无失败文案，全绿存活 9 天——按「配置
   矩阵覆盖」条款
-- **口头挂账无人收口**（云开实证）：「待真网联测」只写进记忆，第十三轮才暴露流式思考时序倒挂——
-  按「启动对账」grep 待验收类关键词补录 ledger.md 后收口；模拟器/离线验不了的面不得以「已过」记
-  收口（穷尽优先判据见 `references/device-matrix.md`）
+- **口头挂账无人收口**（云开实证）：口头挂账只写记忆不进 ledger，多轮之后才暴露——按「启动对账」grep 待验收类关键词补录后收口；模拟器/离线验不了的面不得以「已过」记收口（案例与穷尽优先判据见 `references/device-matrix.md`）

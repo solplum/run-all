@@ -91,7 +91,12 @@ def pick_choice(base_url, api_key_env, model, question, instruction, timeout_s=6
     except Exception as e:  # 网络/超时/非 JSON 响应都算兜底失败，由调用方记 RED
         return {"ok": False, "error": f"LLM 调用失败: {e}"}
 
-    raw = strip_think(data["choices"][0]["message"]["content"] or "")
+    try:
+        raw = strip_think(data["choices"][0]["message"]["content"] or "")
+    except (KeyError, IndexError, TypeError, AttributeError) as e:
+        # 网关 200 + 错误形状体（无 choices/缺 message/content 为数组）按兜底失败归位，不裸崩整批
+        return {"ok": False, "error": f"LLM 响应结构异常: {e!r}",
+                "raw": json.dumps(data, ensure_ascii=False)[:200]}
     m = re.search(r"\{.*\}", raw, flags=re.S)
     if m:
         try:

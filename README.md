@@ -76,7 +76,7 @@ run-all/
 │   ├── llm_match.py              #   fuzzy 读题兜底（key 只走环境变量名）
 │   └── report.py                 #   报告渲染
 ├── references/                   # 规范文档
-│   ├── manifest-spec.md          #   清单字段语义（唯一需要人维护的文件）
+│   ├── manifest-spec.md          #   清单字段语义（清单 manifest.yaml 才是唯一需要人维护的文件）
 │   ├── device-matrix.md          #   多端目标矩阵
 │   ├── experience-audit.md       #   门2 体验审计口径
 │   └── regression-baselines.md   #   回归基线

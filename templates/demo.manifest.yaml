@@ -3,7 +3,7 @@
 #   uv run python <skill>/templates/demo_server.py --port 8765
 #   FULLFLOW_ALLOW_PRIVATE_TARGET=1 uv run --with pyyaml python <skill>/executor/run.py \
 #       --manifest <skill>/templates/demo.manifest.yaml --plan-only   # 先看路径表
-#   同上去掉 --plan-only --gate api                                   # 跑门1
+#   同上去掉 --plan-only、加 --gate api                              # 跑门1
 name: run-all-demo 演示清单
 target:
   api_base: http://127.0.0.1:8765
