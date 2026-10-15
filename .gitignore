@@ -1,0 +1,9 @@
+# Mimosa 安全扫描运行时垃圾
+.mimosa/
+
+# Python 字节码
+__pycache__/
+*.pyc
+
+# 内部项目实例清单（含真实业务接口细节），不随开源仓分发
+templates/manifest.example.yaml

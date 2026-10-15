@@ -1,0 +1,101 @@
+# run-all 演示清单：配合 templates/demo_server.py 使用，零 LLM、零外网。
+# 用法：
+#   uv run python <skill>/templates/demo_server.py --port 8765
+#   FULLFLOW_ALLOW_PRIVATE_TARGET=1 uv run --with pyyaml python <skill>/executor/run.py \
+#       --manifest <skill>/templates/demo.manifest.yaml --plan-only   # 先看路径表
+#   同上去掉 --plan-only --gate api                                   # 跑门1
+name: run-all-demo 演示清单
+target:
+  api_base: http://127.0.0.1:8765
+environment:
+  start: manual                          # 演示服务由人/AI 手动起
+  health: { method: GET, url: "http://127.0.0.1:8765/health", expect: 200, timeout_s: 15 }
+variables:
+  persona_name: "演示-{rand4}"
+probes:
+  duplicate_submit:                      # 重放创建请求 → 服务端 409
+    expect: [{ status: 409 }]
+  invalid_input:                         # 喂非法选项 → 400
+    api: { method: POST, path: "/blueprints/{blueprint_id}/answer", body: { choice: "乱写的选项" } }
+    expect: [{ status: 400 }]
+  cancel:                                # 生成后取消 → 200
+    api: { method: POST, path: "/blueprints/{blueprint_id}/cancel" }
+    expect: [{ status: 200 }]
+diagnosis:
+  logs: []
+flow:
+  steps:
+    - id: create_blueprint
+      api: { method: POST, path: /blueprints, body: { name: "{persona_name}" } }
+      save: { blueprint_id: "$.id" }
+      assert: [{ status: 201 }, { json: "$.id", exists: true }]
+      error_probes: [duplicate_submit]
+
+    - id: get_question
+      api: { method: GET, path: "/blueprints/{blueprint_id}/question" }
+      save: { ai_question: "$.question" }
+      assert: [{ status: 200 }, { text_contains: "人设" }]
+
+    - id: first_question                 # 分叉 1：复刻 vs 全新（exact，选项稳定）
+      fork:
+        read: "{ai_question}"
+        mode: exact
+        expect_keywords: [复刻, 全新]
+        branches:
+          - id: replicate
+            pick: { contains: "复刻" }
+            then:
+              - id: answer_replicate
+                api: { method: POST, path: "/blueprints/{blueprint_id}/answer",
+                       body: { choice: "{first_question_choice}" } }
+                assert: [{ status: 200 }]
+                error_probes: [invalid_input]
+          - id: fresh
+            pick: { contains: "全新" }
+            then:
+              - id: answer_fresh
+                api: { method: POST, path: "/blueprints/{blueprint_id}/answer",
+                       body: { choice: "{first_question_choice}" } }
+                assert: [{ status: 200 }]
+                error_probes: [invalid_input]
+
+    - id: get_brief
+      api: { method: GET, path: "/blueprints/{blueprint_id}/brief" }
+      save: { brief_question: "$.question" }
+      assert: [{ status: 200 }, { text_contains: "确认" }]
+
+    - id: brief_decision                 # 分叉 2：确认 vs 修改（两分支在生成前汇合）
+      fork:
+        read: "{brief_question}"
+        mode: exact
+        expect_keywords: [确认, 修改]
+        branches:
+          - id: confirm
+            pick: { contains: "确认" }
+            then:
+              - id: decision_confirm
+                api: { method: POST, path: "/blueprints/{blueprint_id}/decision",
+                       body: { choice: "{brief_decision_choice}" } }
+                assert: [{ status: 200 }]
+          - id: revise
+            pick: { contains: "修改" }
+            then:
+              - id: decision_revise
+                api: { method: POST, path: "/blueprints/{blueprint_id}/decision",
+                       body: { choice: "{brief_decision_choice}" } }
+                assert: [{ status: 200 }]
+
+    - id: generate_persona
+      api: { method: POST, path: "/blueprints/{blueprint_id}/generate", timeout_s: 60 }
+      assert: [{ status: 200 }, { json: "$.status", eq: "generated" }]
+      error_probes: [cancel]
+
+    - id: verify_record
+      api: { method: GET, path: "/blueprints/{blueprint_id}" }
+      assert: [{ status: 200 }, { json: "$.status", eq: "generated" }]
+
+    - id: env_cli_check                 # cli 步骤演示：本机命令 + 退出码/文本断言（列表=argv 直传）
+      cli:
+        cmd: ["python", "-c", "print('cli-step-ok')"]
+        timeout_s: 30
+      assert: [{ status: 0 }, { text_contains: "cli-step-ok" }]
