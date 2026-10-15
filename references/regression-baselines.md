@@ -50,13 +50,13 @@
 
 ### R3 思考内容混进正文 / 被 TTS 念出
 
-- 来源：soshow 语音通话——声网 vendor 念 reasoning_content 独立字段；换 M3 后 `<think>` 混进 content 流被念进转写
+- 来源：某语音通话项目——TTS vendor 念 reasoning_content 独立字段；换思考模型后 `<think>` 混进 content 流被念进转写
 - 不该出现：正文渲染区/转写文本含 `<think>` 标签、reasoning 字段内容、思考导语句式
 - 断言：正文区黑名单扫描 `<think>`；语音类对转写文本断言无思考痕迹；API 层 `json.not_contains`
 
 ### R4 消息重复渲染（同 ID 出现多次）
 
-- 来源：soshow 群聊——WS 断线 >60s 重连整批重放 + 前端零去重；AI 回复 Rust+Java 双通道各写一次
+- 来源：某 IM 项目——WS 断线 >60s 重连整批重放 + 前端零去重；AI 回复经多条后端通道各写一次
 - 不该出现：同一 message_id / 同文本在消息列表出现 ≥2 次（DB 一条不算过，显示层才算数）
 - 断言：AI 驱动层断开 → 重连 → 读屏比对重复计数；web 用 DOM 查询计数
 

@@ -53,5 +53,5 @@ SKILL.md 判定通则条只做索引，两处不重复维护。
 - 云开真机 MIUI：无障碍高频闪断弄丢悬浮球，模拟器从不可见（yunkai-realdevice-miui-playbook）
 - 云开抽屉撞位：⚙✕ 与 ☰ 坐标重叠（Android ☰[817..949] vs ✕[772..904]），
   模拟器截图肉眼可见却拖到用户截图报障（yunkai-drawer-ui-decisions-20260911）
-- soshow 语音开场白：greeting 与 Web 端音频轨就绪竞态，前半句被吞、文本层全中文全绿，
-  只能人耳发现（soshow-voice-call-202609）
+- 某语音通话项目开场白：greeting 与 Web 端音频轨就绪竞态，前半句被吞、文本层全中文全绿，
+  只能人耳发现
